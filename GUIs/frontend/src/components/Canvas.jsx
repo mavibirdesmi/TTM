@@ -28,10 +28,11 @@ const Canvas = forwardRef(({
       if (!currentLayer || !currentLayer.origin_local_xy) {
         return { x: 0, y: 0, rotation: 0, scale: 1 };
       }
-      // Calculate actual position: origin + drag offset
+      // Return the actual position: origin + drag offset
+      const origin = currentLayer.origin_local_xy;
       return {
-        x: currentLayer.origin_local_xy[0] + dragOffset.x,
-        y: currentLayer.origin_local_xy[1] + dragOffset.y,
+        x: origin[0] + dragOffset.x,
+        y: origin[1] + dragOffset.y,
         rotation: rotation,
         scale: scale,
       };
@@ -57,17 +58,17 @@ const Canvas = forwardRef(({
   useEffect(() => {
     if (currentLayer && currentLayer.keyframes && currentLayer.keyframes.length > 0) {
       const lastKf = currentLayer.keyframes[currentLayer.keyframes.length - 1];
-      // Calculate drag offset from the difference between last keyframe and origin
-      if (currentLayer.origin_local_xy) {
-        setDragOffset({
-          x: lastKf.pos[0] - currentLayer.origin_local_xy[0],
-          y: lastKf.pos[1] - currentLayer.origin_local_xy[1],
-        });
-      }
+      const origin = currentLayer.origin_local_xy || [0, 0];
+      
+      // The keyframe position is absolute, so calculate offset from origin
+      setDragOffset({
+        x: lastKf.pos[0] - origin[0],
+        y: lastKf.pos[1] - origin[1],
+      });
       setRotation(lastKf.rot_deg);
       setScale(lastKf.scale);
     } else {
-      // Reset to no offset for new layers
+      // Reset to no offset for new layers (start at origin)
       setDragOffset({ x: 0, y: 0 });
       setRotation(0);
       setScale(1);
@@ -130,10 +131,30 @@ const Canvas = forwardRef(({
     const points = layer.polygon_xy.flat();
     const color = layer.color ? `rgb(${layer.color.join(',')})` : 'rgb(255, 99, 99)';
     
-    // For the current layer, apply drag offset
+    // For the current layer, apply transforms
     const isCurrentLayer = layer === currentLayer;
-    const x = isCurrentLayer ? dragOffset.x : 0;
-    const y = isCurrentLayer ? dragOffset.y : 0;
+    
+    // Calculate the origin (center of bounding box) for transform pivot
+    const origin = layer.origin_local_xy || [0, 0];
+    
+    // For non-current layers, show them at their last keyframe position
+    let x = origin[0];
+    let y = origin[1];
+    let rot = 0;
+    let scl = 1;
+    
+    if (isCurrentLayer) {
+      x = origin[0] + dragOffset.x;
+      y = origin[1] + dragOffset.y;
+      rot = rotation;
+      scl = scale;
+    } else if (layer.keyframes && layer.keyframes.length > 0) {
+      const lastKf = layer.keyframes[layer.keyframes.length - 1];
+      x = lastKf.pos[0];
+      y = lastKf.pos[1];
+      rot = lastKf.rot_deg;
+      scl = lastKf.scale;
+    }
 
     return (
       <Line
@@ -144,19 +165,22 @@ const Canvas = forwardRef(({
         strokeWidth={2}
         closed={true}
         fill={`${color}33`}
+        // Position
         x={x}
         y={y}
-        rotation={isCurrentLayer ? rotation : 0}
-        scaleX={isCurrentLayer ? scale : 1}
-        scaleY={isCurrentLayer ? scale : 1}
-        offsetX={layer.origin_local_xy ? layer.origin_local_xy[0] : 0}
-        offsetY={layer.origin_local_xy ? layer.origin_local_xy[1] : 0}
+        // Rotation and scale around origin
+        offsetX={origin[0]}
+        offsetY={origin[1]}
+        rotation={rot}
+        scaleX={scl}
+        scaleY={scl}
         draggable={isCurrentLayer && mode !== 'draw-polygon'}
         onDragMove={(e) => {
           if (isCurrentLayer) {
+            // Store the drag offset relative to the origin
             setDragOffset({
-              x: e.target.x(),
-              y: e.target.y(),
+              x: e.target.x() - origin[0],
+              y: e.target.y() - origin[1],
             });
           }
         }}
