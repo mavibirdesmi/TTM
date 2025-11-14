@@ -4,11 +4,28 @@ import { v4 as uuidv4 } from 'uuid';
 import Canvas from './components/Canvas';
 import Toolbar from './components/Toolbar';
 import InstructionBanner from './components/InstructionBanner';
+import ApiConfig from './components/ApiConfig';
 import './App.css';
 
-const API_BASE = '/api';
+// Get API base URL from environment variable or localStorage or use default
+const getInitialApiUrl = () => {
+  // Check localStorage first
+  const savedUrl = localStorage.getItem('ttm_api_url');
+  if (savedUrl) return savedUrl;
+  
+  // Then check environment variable
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  
+  // Default to localhost
+  return 'http://localhost:8000';
+};
 
 function App() {
+  const [apiUrl, setApiUrl] = useState(getInitialApiUrl());
+  const [showApiConfig, setShowApiConfig] = useState(false);
+  const API_BASE = `${apiUrl}/api`;
+  
+  console.log('Using API URL:', API_BASE);
   const [sessionId] = useState(() => uuidv4());
   const [baseImage, setBaseImage] = useState(null);
   const [layers, setLayers] = useState([]);
@@ -30,7 +47,14 @@ function App() {
   useEffect(() => {
     axios.post(`${API_BASE}/session/create`, { session_id: sessionId })
       .catch(err => console.error('Failed to create session:', err));
-  }, [sessionId]);
+  }, [sessionId, API_BASE]);
+
+  const handleApiUrlChange = (newUrl) => {
+    setApiUrl(newUrl);
+    localStorage.setItem('ttm_api_url', newUrl);
+    // Reset session when API URL changes
+    window.location.reload();
+  };
 
   const handleSelectImage = async (event) => {
     const file = event.target.files?.[0];
@@ -336,6 +360,8 @@ function App() {
           onPromptChange={setPrompt}
           onSave={handleSave}
           onNew={handleNew}
+          onApiConfig={() => setShowApiConfig(true)}
+          apiUrl={apiUrl}
         />
 
         <div className="canvas-container">
@@ -351,6 +377,14 @@ function App() {
           />
         </div>
       </div>
+
+      {showApiConfig && (
+        <ApiConfig
+          currentUrl={apiUrl}
+          onUrlChange={handleApiUrlChange}
+          onClose={() => setShowApiConfig(false)}
+        />
+      )}
 
       <input
         ref={fileInputRef}

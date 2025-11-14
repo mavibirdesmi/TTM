@@ -43,6 +43,46 @@ npm run dev
 
 Navigate to: **http://localhost:3000**
 
+## 🌐 Connecting to Remote Backend
+
+### Quick Method (No Restart Required)
+
+1. Open the frontend in your browser
+2. Click the **"🔗 Backend"** button in the toolbar (top-left)
+3. Enter your backend URL (e.g., `http://192.168.1.100:8000`)
+4. Click **"Test Connection"** to verify
+5. Click **"Save & Apply"**
+
+### Environment Variable Method
+
+Create `.env.local` in the frontend directory:
+```bash
+cd GUIs/frontend
+echo "VITE_API_URL=http://your-server-ip:8000" > .env.local
+npm run dev
+```
+
+### Running Backend on Remote Server
+
+```bash
+# SSH into your remote server
+ssh user@your-server
+
+# Start backend (accessible from network)
+cd TTM/GUIs/backend
+python app.py
+# Backend runs on 0.0.0.0:8000
+
+# Find server IP
+hostname -I
+# Example output: 192.168.1.100
+
+# Make sure firewall allows port 8000
+sudo ufw allow 8000/tcp
+```
+
+Then from any device on the same network, use `http://192.168.1.100:8000` as your backend URL.
+
 ## 🎯 Basic Usage Flow
 
 1. **Select Image** → Upload your base image/video

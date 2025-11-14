@@ -150,6 +150,12 @@ python GUIs/cut_and_drag.py
 ### 🌐 Web Application (FastAPI + React)
 A browser-based interface that works on any platform. Perfect for remote servers or team collaboration.
 
+**Features:**
+- 🌍 Access from any device on your network
+- 🔄 Connect to remote GPU servers
+- 🎨 Modern browser-based interface
+- 💾 Same powerful cut-and-drag functionality
+
 **Quick Start:**
 ```bash
 # Install backend dependencies
@@ -174,7 +180,10 @@ chmod +x start_web_app.sh
 
 Then open **http://localhost:3000** in your browser.
 
-📖 **[Read the Web App Guide](GUIs/README_WEB.md)** | 🚀 **[Quick Start Guide](GUIs/QUICKSTART_WEB.md)**
+**Remote Access:**
+Run the backend on your GPU server and connect from any device! Click the "🔗 Backend" button in the UI to configure the remote server URL.
+
+📖 **[Read the Web App Guide](GUIs/README_WEB.md)** | 🚀 **[Quick Start Guide](GUIs/QUICKSTART_WEB.md)** | 🌐 **[Remote Access Setup](GUIs/REMOTE_ACCESS.md)**
 
 ### Which Should I Use?
 

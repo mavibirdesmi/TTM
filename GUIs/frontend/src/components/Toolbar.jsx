@@ -21,9 +21,30 @@ function Toolbar({
   onPromptChange,
   onSave,
   onNew,
+  onApiConfig,
+  apiUrl,
 }) {
+  // Extract hostname from API URL for display
+  const getApiHostname = (url) => {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.hostname === 'localhost' ? 'Local' : urlObj.hostname;
+    } catch {
+      return 'Unknown';
+    }
+  };
+
   return (
     <div className="toolbar">
+      <div className="toolbar-section api-status">
+        <label>Backend:</label>
+        <button className="api-status-btn" onClick={onApiConfig} title="Click to change API URL">
+          🔗 {getApiHostname(apiUrl)}
+        </button>
+      </div>
+
+      <div className="toolbar-divider"></div>
+
       <div className="toolbar-section">
         <label>Fit Mode:</label>
         <select value={fitMode} onChange={(e) => onFitModeChange(e.target.value)}>

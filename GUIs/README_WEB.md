@@ -63,25 +63,137 @@ The frontend will start at `http://localhost:3000`
 ./start_web_app.sh
 ```
 
+## Connecting to Remote Backend
+
+The frontend supports connecting to a remote FastAPI backend. There are three ways to configure this:
+
+### Method 1: Environment Variable (Build Time)
+
+Create a `.env.local` file in the frontend directory:
+
+```bash
+cd GUIs/frontend
+cp .env.example .env.local
+```
+
+Edit `.env.local`:
+```bash
+VITE_API_URL=http://your-server-ip:8000
+# or
+VITE_API_URL=https://your-domain.com
+```
+
+Then restart the frontend.
+
+### Method 2: Runtime Configuration (Recommended)
+
+1. Start the frontend application
+2. Look at the toolbar on the left
+3. Click the **"🔗 Backend"** button at the top
+4. Enter your remote backend URL (e.g., `http://192.168.1.100:8000`)
+5. Click **"Test Connection"** to verify
+6. Click **"Save & Apply"** to use the new URL
+
+The URL will be saved in your browser's localStorage and persist across sessions.
+
+### Method 3: Proxy Configuration (Development)
+
+Edit `vite.config.js` to change the default proxy target:
+
+```javascript
+proxy: {
+  '/api': {
+    target: 'http://your-server-ip:8000',
+    changeOrigin: true,
+  }
+}
+```
+
+## Remote Server Setup
+
+To run the backend on a remote server accessible from other devices:
+
+### Start Backend on Remote Server
+
+```bash
+cd GUIs/backend
+
+# Option 1: Bind to all interfaces
+python -c "import uvicorn; from app import app; uvicorn.run(app, host='0.0.0.0', port=8000)"
+
+# Option 2: Modify app.py to use 0.0.0.0
+# Change the last line from:
+#   uvicorn.run(app, host="0.0.0.0", port=8000)
+# Then run:
+python app.py
+```
+
+### Firewall Configuration
+
+Make sure port 8000 is open:
+
+```bash
+# Ubuntu/Debian
+sudo ufw allow 8000/tcp
+
+# Or use iptables
+sudo iptables -A INPUT -p tcp --dport 8000 -j ACCEPT
+```
+
+### Find Your Server IP
+
+```bash
+# Linux/Mac
+ip addr show  # or ifconfig
+hostname -I
+
+# The IP will look like 192.168.x.x or 10.x.x.x
+```
+
+### Connect from Frontend
+
+1. On your client machine, open the frontend at `http://localhost:3000`
+2. Click the **"🔗 Backend"** button
+3. Enter: `http://<server-ip>:8000` (replace `<server-ip>` with actual IP)
+4. Test the connection and save
+
+### Security Notes
+
+⚠️ **For production use:**
+
+1. **Enable HTTPS**: Use a reverse proxy (nginx/caddy) with SSL
+2. **Update CORS**: Restrict allowed origins in `app.py`:
+   ```python
+   app.add_middleware(
+       CORSMiddleware,
+       allow_origins=["https://your-frontend-domain.com"],
+       ...
+   )
+   ```
+3. **Authentication**: Add API key or OAuth authentication
+4. **Firewall**: Only allow necessary IPs to access port 8000
+
 ## Usage
 
 1. **Open your browser** and navigate to `http://localhost:3000`
 
-2. **Select a base image or video** - Click "Select Image" to upload your base media
+2. **Configure Backend (Optional for Remote)** - Click the "🔗 Backend" button to connect to a remote server
 
-3. **Draw polygons** - Click "Add Polygon" and click on the canvas to define polygon vertices. Right-click to finish.
+3. **Select a base image or video** - Click "Select Image" to upload your base media
 
-4. **Add movement** - Drag the polygon to a new position, scale or rotate it
+4. **Draw polygons** - Click "Add Polygon" and click on the canvas to define polygon vertices. Right-click to finish.
 
-5. **End segment** - Click "End Segment" to record the keyframe
+5. **Add movement** - Drag the polygon to a new position, scale or rotate it
 
-6. **Repeat** - Continue adding movements and keyframes
+6. **End segment** - Click "End Segment" to record the keyframe
 
-7. **Adjust hue** (optional) - Use the Hue Transform slider to change colors for specific segments
+7. **Repeat** - Continue adding movements and keyframes
 
-8. **Add external sprites** (optional) - Click "Add External Image" to add overlay sprites
+8. **Adjust hue** (optional) - Use the Hue Transform slider to change colors for specific segments
 
-9. **Save** - Click "Save" to generate and download the motion video, mask, and first frame as a zip file
+9. **Add external sprites** (optional) - Click "Add External Image" to add overlay sprites
+
+10. **Save** - Click "Save" to generate and download the motion video, mask, and first frame as a zip file
 
 ## Features
 
