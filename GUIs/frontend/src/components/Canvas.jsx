@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Stage, Layer, Image, Line, Circle, Rect } from 'react-konva';
+import { Stage, Layer, Image, Line, Circle, Transformer } from 'react-konva';
 import './Canvas.css';
 
 const Canvas = forwardRef(({
@@ -15,12 +15,27 @@ const Canvas = forwardRef(({
   const [image, setImage] = useState(null);
   const [tempPoints, setTempPoints] = useState([]);
   const [selectedShape, setSelectedShape] = useState(null);
-  const [transform, setTransform] = useState({ x: 0, y: 0, rotation: 0, scale: 1 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [rotation, setRotation] = useState(0);
+  const [scale, setScale] = useState(1);
   const stageRef = useRef(null);
+  const shapeRef = useRef(null);
+  const transformerRef = useRef(null);
 
   // Expose methods to parent
   useImperativeHandle(ref, () => ({
-    getCurrentTransform: () => transform,
+    getCurrentTransform: () => {
+      if (!currentLayer || !currentLayer.origin_local_xy) {
+        return { x: 0, y: 0, rotation: 0, scale: 1 };
+      }
+      // Calculate actual position: origin + drag offset
+      return {
+        x: currentLayer.origin_local_xy[0] + dragOffset.x,
+        y: currentLayer.origin_local_xy[1] + dragOffset.y,
+        rotation: rotation,
+        scale: scale,
+      };
+    },
   }));
 
   // Load base image
@@ -42,19 +57,20 @@ const Canvas = forwardRef(({
   useEffect(() => {
     if (currentLayer && currentLayer.keyframes && currentLayer.keyframes.length > 0) {
       const lastKf = currentLayer.keyframes[currentLayer.keyframes.length - 1];
-      setTransform({
-        x: lastKf.pos[0],
-        y: lastKf.pos[1],
-        rotation: lastKf.rot_deg,
-        scale: lastKf.scale,
-      });
-    } else if (currentLayer && currentLayer.origin_local_xy) {
-      setTransform({
-        x: currentLayer.origin_local_xy[0],
-        y: currentLayer.origin_local_xy[1],
-        rotation: 0,
-        scale: 1,
-      });
+      // Calculate drag offset from the difference between last keyframe and origin
+      if (currentLayer.origin_local_xy) {
+        setDragOffset({
+          x: lastKf.pos[0] - currentLayer.origin_local_xy[0],
+          y: lastKf.pos[1] - currentLayer.origin_local_xy[1],
+        });
+      }
+      setRotation(lastKf.rot_deg);
+      setScale(lastKf.scale);
+    } else {
+      // Reset to no offset for new layers
+      setDragOffset({ x: 0, y: 0 });
+      setRotation(0);
+      setScale(1);
     }
   }, [currentLayer]);
 
@@ -100,27 +116,56 @@ const Canvas = forwardRef(({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [mode, tempPoints]);
 
+  // Attach transformer to current shape
+  useEffect(() => {
+    if (transformerRef.current && shapeRef.current && currentLayer && mode !== 'draw-polygon') {
+      transformerRef.current.nodes([shapeRef.current]);
+      transformerRef.current.getLayer().batchDraw();
+    }
+  }, [currentLayer, mode]);
+
   const renderPolygon = (layer) => {
     if (!layer.polygon_xy || layer.polygon_xy.length < 3) return null;
 
     const points = layer.polygon_xy.flat();
     const color = layer.color ? `rgb(${layer.color.join(',')})` : 'rgb(255, 99, 99)';
+    
+    // For the current layer, apply drag offset
+    const isCurrentLayer = layer === currentLayer;
+    const x = isCurrentLayer ? dragOffset.x : 0;
+    const y = isCurrentLayer ? dragOffset.y : 0;
 
     return (
       <Line
         key={`poly-${layer.name}`}
+        ref={isCurrentLayer ? shapeRef : null}
         points={points}
         stroke={color}
         strokeWidth={2}
         closed={true}
         fill={`${color}33`}
-        draggable={layer === currentLayer}
-        onDragEnd={(e) => {
-          setTransform({
-            ...transform,
-            x: e.target.x(),
-            y: e.target.y(),
-          });
+        x={x}
+        y={y}
+        rotation={isCurrentLayer ? rotation : 0}
+        scaleX={isCurrentLayer ? scale : 1}
+        scaleY={isCurrentLayer ? scale : 1}
+        offsetX={layer.origin_local_xy ? layer.origin_local_xy[0] : 0}
+        offsetY={layer.origin_local_xy ? layer.origin_local_xy[1] : 0}
+        draggable={isCurrentLayer && mode !== 'draw-polygon'}
+        onDragMove={(e) => {
+          if (isCurrentLayer) {
+            setDragOffset({
+              x: e.target.x(),
+              y: e.target.y(),
+            });
+          }
+        }}
+        onTransformEnd={(e) => {
+          if (isCurrentLayer) {
+            const node = e.target;
+            setScale(node.scaleX());
+            setRotation(node.rotation());
+          }
         }}
       />
     );
@@ -204,6 +249,23 @@ const Canvas = forwardRef(({
 
           {/* Temp polygon being drawn */}
           {renderTempPolygon()}
+
+          {/* Transformer for current layer */}
+          {currentLayer && mode !== 'draw-polygon' && (
+            <Transformer
+              ref={transformerRef}
+              boundBoxFunc={(oldBox, newBox) => {
+                // Limit resize to prevent negative sizes
+                if (newBox.width < 5 || newBox.height < 5) {
+                  return oldBox;
+                }
+                return newBox;
+              }}
+              enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
+              rotateEnabled={true}
+              keepRatio={false}
+            />
+          )}
         </Layer>
       </Stage>
 
