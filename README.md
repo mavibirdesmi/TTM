@@ -130,17 +130,66 @@ python run_svd.py \
 <br>
 
 ## Generate Your Own Cut-and-Drag Examples
-We provide an easy-to-use GUI for creating cut-and-drag examples that can later be used for video generation in **Time-to-Move**. We recommend reading the [GUI guide](GUIs/README.md) before using it.
+We provide **two interfaces** for creating cut-and-drag examples that can be used for video generation in **Time-to-Move**:
+
+### 🖥️ Desktop GUI (PySide6)
+A standalone desktop application with full features and real-time preview.
 
 <p align="center">
   <img src="assets/gui.png" alt="Cut-and-Drag GUI Example" width="400">
 </p>
 
-To get started quickly, create a new environment and run:
+**Quick Start:**
 ```bash
 pip install PySide6 opencv-python numpy imageio imageio-ffmpeg
 python GUIs/cut_and_drag.py
 ```
+
+📖 **[Read the Desktop GUI Guide](GUIs/README.md)**
+
+### 🌐 Web Application (FastAPI + React)
+A browser-based interface that works on any platform. Perfect for remote servers or team collaboration.
+
+**Quick Start:**
+```bash
+# Install backend dependencies
+cd GUIs/backend
+pip install -r requirements-backend.txt
+
+# Install frontend dependencies
+cd ../frontend
+npm install
+
+# Start both services (requires two terminals)
+# Terminal 1:
+cd GUIs/backend && python app.py
+
+# Terminal 2:
+cd GUIs/frontend && npm run dev
+
+# Or use the automated launcher:
+chmod +x start_web_app.sh
+./start_web_app.sh
+```
+
+Then open **http://localhost:3000** in your browser.
+
+📖 **[Read the Web App Guide](GUIs/README_WEB.md)** | 🚀 **[Quick Start Guide](GUIs/QUICKSTART_WEB.md)**
+
+### Which Should I Use?
+
+| Feature | Desktop GUI | Web App |
+|---------|------------|---------|
+| Installation | Simple (pip only) | Requires Node.js + Python |
+| Interface | Native Qt widgets | Browser-based |
+| Performance | Better for large files | Good for most cases |
+| Real-time Preview | Full frame-by-frame | Simplified |
+| Transform Handles | Visual resize/rotate | Drag-based |
+| Remote Access | ❌ Local only | ✅ Works over network |
+| Platform | Desktop only | Any device with browser |
+
+**Recommendation:** Use the **Desktop GUI** for local work with advanced features. Use the **Web App** for remote servers, collaboration, or if you prefer browser-based tools.
+
 <br>
 
 ### TODO 🛠️
@@ -150,8 +199,10 @@ python GUIs/cut_and_drag.py
 - [x] SVD run code
 - [x] Cut-and-Drag examples
 - [x] Camera-control examples
-- [x] Cut-and-Drag GUI
-- [x] Cut-and-Drag GUI guide
+- [x] Cut-and-Drag Desktop GUI
+- [x] Cut-and-Drag Desktop GUI guide
+- [x] Cut-and-Drag Web Application (FastAPI + React)
+- [x] Cut-and-Drag Web App guide
 - [ ] Evaluation code
 
  

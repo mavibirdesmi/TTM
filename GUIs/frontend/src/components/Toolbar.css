@@ -1,0 +1,117 @@
+.toolbar {
+  width: 200px;
+  background: white;
+  border-right: 1px solid #ddd;
+  padding: 15px 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toolbar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.toolbar-section label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.toolbar-section select,
+.toolbar-section input {
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.toolbar-btn {
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  transition: all 0.2s;
+  min-width: 180px;
+}
+
+.toolbar-btn:hover {
+  background: #f0f0f0;
+  border-color: #999;
+}
+
+.toolbar-btn:active {
+  background: #e0e0e0;
+}
+
+.toolbar-btn.primary {
+  background: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+.toolbar-btn.primary:hover {
+  background: #45a049;
+}
+
+.toolbar-divider {
+  height: 1px;
+  background: #ddd;
+  margin: 5px 0;
+}
+
+.hue-control {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.hue-slider {
+  flex: 1;
+}
+
+.default-btn {
+  padding: 4px 8px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.default-btn:hover {
+  background: #f0f0f0;
+}
+
+.hue-value {
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.number-input {
+  width: 100%;
+}
+
+.prompt-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.prompt-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
